@@ -1,6 +1,5 @@
 # Leshan config files #
 leshan-core/ddffiles
-**/Californium.properties
 **/data/*.data
 **/data/*.json
 

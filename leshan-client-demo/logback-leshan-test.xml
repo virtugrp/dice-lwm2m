@@ -28,6 +28,14 @@ Contributors:
 		</encoder>
 	</appender>
 
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>/opt/dice-lwm2m/dice-lwm2m-client.log</file>
+		<append>true</append>
+		<encoder>
+			<pattern>%date [%level] %-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
 	<root level="ERROR">
 		<appender-ref ref="STDOUT" />
 	</root>

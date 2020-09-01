@@ -36,7 +36,7 @@ Contributors:
 		</encoder>
 	</appender>
 
-	<root level="ERROR">
+	<root level="WARN">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>

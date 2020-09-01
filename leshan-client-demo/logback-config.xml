@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
+<!-- 
 Copyright (c) 2013-2015 Sierra Wireless and others.
 
 All rights reserved. This program and the accompanying materials
@@ -13,23 +13,16 @@ and the Eclipse Distribution License is available at
 
 Contributors:
     Sierra Wireless - initial API and implementation
--->
+ -->
 <configuration>
-	<!--
-		This file will only be used by maven by default.
-		If you want to use it in your IDE, just :
-		 - use -Dlogback.configurationFile=logback-test-.xml argument  
-		or
-		 - put a logback-test.xml file in your classpath (it will be ignore by git)
-	-->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%d %p %C{1.} [%t] %m%n</pattern>
+			<pattern>%d %p %C{0} - %m%n</pattern>
 		</encoder>
 	</appender>
 
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>/opt/dice-lwm2m/dice-lwm2m-client-test.log</file>
+		<file>/opt/dice-lwm2m/dice-lwm2m-client.log</file>
 		<append>true</append>
 		<encoder>
 			<pattern>%date [%level] %-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
@@ -40,5 +33,9 @@ Contributors:
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>
+	
+	<logger name="org.eclipse.leshan" level="INFO"/>
+	<logger name="org.eclipse.leshan.core.californium.LwM2mCoapResource" level="DEBUG"/>
+	<logger name="org.eclipse.leshan.server.security.SecurityCheck" level="DEBUG"/>
+	<logger name="org.eclipse.leshan.core.model.LwM2mModelRepository" level="TRACE"/>
 </configuration>
-

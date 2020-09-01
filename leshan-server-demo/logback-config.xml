@@ -21,8 +21,17 @@ Contributors:
 		</encoder>
 	</appender>
 
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>dice-lwm2m-server-${byDay}.log</file>
+		<append>true</append>
+		<encoder>
+			<pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
 	<root level="WARN">
 		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
 	</root>
 	
 	<logger name="org.eclipse.leshan" level="INFO"/>

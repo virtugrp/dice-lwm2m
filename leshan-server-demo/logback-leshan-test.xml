@@ -29,7 +29,7 @@ Contributors:
 	</appender>
 
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>dice-lwm2m-server-test-${byDay}.log</file>
+		<file>dice-lwm2m-server-test.log</file>
 		<append>true</append>
 		<encoder>
 			<pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>

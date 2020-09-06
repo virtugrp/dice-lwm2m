@@ -111,4 +111,16 @@ public class CoapMessage {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "timestamp:" + timestamp + "\n" +
+                "incoming:" + incoming + "\n" +
+                "type:" + type + "\n" +
+                "code:" + code + "\n" +
+                "mId:" + mId + "\n" +
+                "token:" + token + "\n" +
+                "options:" + options + "\n" +
+                "payload:" + payload;
+    }
 }

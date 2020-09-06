@@ -82,6 +82,7 @@ public class EventServlet extends EventSourceServlet {
         public void registered(Registration registration, Registration previousReg,
                 Collection<Observation> previousObsersations) {
             String jReg = EventServlet.this.gson.toJson(registration);
+            LOG.info("registered:jReg[" + jReg +"] and registration.getEndpoint[" + registration.getEndpoint() + "]");
             sendEvent(EVENT_REGISTRATION, jReg, registration.getEndpoint());
         }
 
@@ -92,6 +93,7 @@ public class EventServlet extends EventSourceServlet {
             regUpdate.registration = updatedRegistration;
             regUpdate.update = update;
             String jReg = EventServlet.this.gson.toJson(regUpdate);
+            LOG.info("unregistered:jReg[" + jReg +"] and registration.getEndpoint[" + updatedRegistration.getEndpoint() + "]");
             sendEvent(EVENT_UPDATED, jReg, updatedRegistration.getEndpoint());
         }
 
@@ -99,6 +101,7 @@ public class EventServlet extends EventSourceServlet {
         public void unregistered(Registration registration, Collection<Observation> observations, boolean expired,
                 Registration newReg) {
             String jReg = EventServlet.this.gson.toJson(registration);
+            LOG.info("unregistered:jReg[" + jReg +"] and registration.getEndpoint[" + registration.getEndpoint() + "]");
             sendEvent(EVENT_DEREGISTRATION, jReg, registration.getEndpoint());
         }
 
@@ -109,13 +112,14 @@ public class EventServlet extends EventSourceServlet {
         @Override
         public void onSleeping(Registration registration) {
             String data = new StringBuilder("{\"ep\":\"").append(registration.getEndpoint()).append("\"}").toString();
-
+            LOG.info("onSleeping:data[" + data +"] and registration.getEndpoint[" + registration.getEndpoint() + "]");
             sendEvent(EVENT_SLEEPING, data, registration.getEndpoint());
         }
 
         @Override
         public void onAwake(Registration registration) {
             String data = new StringBuilder("{\"ep\":\"").append(registration.getEndpoint()).append("\"}").toString();
+            LOG.info("onAwake:data[" + data +"] and registration.getEndpoint[" + registration.getEndpoint() + "]");
             sendEvent(EVENT_AWAKE, data, registration.getEndpoint());
         }
     };
@@ -133,10 +137,15 @@ public class EventServlet extends EventSourceServlet {
                         response.getContent().toString());
             }
 
+            LOG.info("onResponse-Received notification from [{}] containing value [{}]", observation.getPath(),
+                    response.getContent().toString());
+
             if (registration != null) {
                 String data = new StringBuilder("{\"ep\":\"").append(registration.getEndpoint()).append("\",\"res\":\"")
                         .append(observation.getPath().toString()).append("\",\"val\":")
                         .append(gson.toJson(response.getContent())).append("}").toString();
+
+                LOG.info("onResponse:data[" + data +"] and registration.getEndpoint[" + registration.getEndpoint() + "]");
 
                 sendEvent(EVENT_NOTIFICATION, data, registration.getEndpoint());
             }
@@ -148,14 +157,24 @@ public class EventServlet extends EventSourceServlet {
                 LOG.warn(String.format("Unable to handle notification of [%s:%s]", observation.getRegistrationId(),
                         observation.getPath()), error);
             }
+
+            LOG.info(String.format("Unable to handle notification of [%s:%s]", observation.getRegistrationId(),
+                    observation.getPath()), error);
+
+            LOG.info(String.format("Unable to handle notification of [%s:%s]", observation.getRegistrationId(),
+                    observation.getPath()), error);
         }
 
         @Override
         public void newObservation(Observation observation, Registration registration) {
+            LOG.info(String.format("newObservation-registrationId:" + observation.getRegistrationId() + " and endpoint:" + registration.getEndpoint()));
         }
     };
 
     public EventServlet(LeshanServer server, int securePort) {
+
+        LOG.info("EventServlet - DICE LWMTM Server is starting...");
+
         server.getRegistrationService().addListener(this.registrationListener);
         server.getObservationService().addListener(this.observationListener);
         server.getPresenceService().addListener(this.presenceListener);
@@ -172,6 +191,11 @@ public class EventServlet extends EventSourceServlet {
         gsonBuilder.registerTypeHierarchyAdapter(LwM2mNode.class, new LwM2mNodeSerializer());
         gsonBuilder.setDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
         this.gson = gsonBuilder.create();
+
+        LOG.info("EventServlet - gson:" + this.gson);
+
+        LOG.info("EventServlet - DICE LWMTM Server started...");
+
     }
 
     private synchronized void sendEvent(String event, String data, String endpoint) {
@@ -179,8 +203,12 @@ public class EventServlet extends EventSourceServlet {
             LOG.debug("Dispatching {} event from endpoint {}", event, endpoint);
         }
 
+        LOG.info("sendEvent: Dispatching {} event from endpoint {}", event, endpoint);
+
+
         for (LeshanEventSource eventSource : eventSources) {
             if (eventSource.getEndpoint() == null || eventSource.getEndpoint().equals(endpoint)) {
+                LOG.info("sendEvent:data " + data);
                 eventSource.sentEvent(event, data);
             }
         }
@@ -196,9 +224,13 @@ public class EventServlet extends EventSourceServlet {
 
         @Override
         public void trace(CoapMessage message) {
+
+            LOG.info("trace-initial[" + message.toString() + "]");
             JsonElement coapLog = EventServlet.this.gson.toJsonTree(message);
             coapLog.getAsJsonObject().addProperty("ep", this.endpoint);
             String coapLogWithEndPoint = EventServlet.this.gson.toJson(coapLog);
+            LOG.info("trace-coap-endpoint:" + endpoint);
+            LOG.info("trace-coapLogWithEndPoint:" + coapLogWithEndPoint);
             sendEvent(EVENT_COAP_LOG, coapLogWithEndPoint, endpoint);
         }
 
@@ -206,17 +238,23 @@ public class EventServlet extends EventSourceServlet {
 
     private void cleanCoapListener(String endpoint) {
         // remove the listener if there is no more eventSources for this endpoint
+        LOG.info("cleanCoapListener-start");
         for (LeshanEventSource eventSource : eventSources) {
+            LOG.info("cleanCoapListener-for:" + eventSource.getEndpoint());
             if (eventSource.getEndpoint() == null || eventSource.getEndpoint().equals(endpoint)) {
+                LOG.info("cleanCoapListener-for:" + " returning because of endpoint is null");
                 return;
             }
         }
+        LOG.info("cleanCoapListener-enpoint:" + endpoint);
         coapMessageTracer.removeListener(endpoint);
+        LOG.info("cleanCoapListener-start");
     }
 
     @Override
     protected EventSource newEventSource(HttpServletRequest req) {
         String endpoint = req.getParameter(QUERY_PARAM_ENDPOINT);
+        LOG.info("newEventSource-endpoint:" + endpoint);
         return new LeshanEventSource(endpoint);
     }
 
@@ -231,21 +269,25 @@ public class EventServlet extends EventSourceServlet {
 
         @Override
         public void onOpen(Emitter emitter) throws IOException {
+            LOG.info("onOpen");
             this.emitter = emitter;
             eventSources.add(this);
             if (endpoint != null) {
                 coapMessageTracer.addListener(endpoint, new ClientCoapListener(endpoint));
+                LOG.info("endpoint is not null so listener added");
             }
         }
 
         @Override
         public void onClose() {
+            LOG.info("onClose");
             cleanCoapListener(endpoint);
             eventSources.remove(this);
         }
 
         public void sentEvent(String event, String data) {
             try {
+                LOG.info("sentEvent-event:" + event + " and data:" + data);
                 emitter.event(event, data);
             } catch (IOException e) {
                 e.printStackTrace();

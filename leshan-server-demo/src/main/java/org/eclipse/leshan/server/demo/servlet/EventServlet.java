@@ -93,7 +93,7 @@ public class EventServlet extends EventSourceServlet {
             regUpdate.registration = updatedRegistration;
             regUpdate.update = update;
             String jReg = EventServlet.this.gson.toJson(regUpdate);
-            LOG.info("unregistered:jReg[" + jReg +"] and registration.getEndpoint[" + updatedRegistration.getEndpoint() + "]");
+            LOG.info("updated:jReg[" + jReg +"] and updatedRegistration.getEndpoint[" + updatedRegistration.getEndpoint() + "]");
             sendEvent(EVENT_UPDATED, jReg, updatedRegistration.getEndpoint());
         }
 
@@ -274,13 +274,13 @@ public class EventServlet extends EventSourceServlet {
             eventSources.add(this);
             if (endpoint != null) {
                 coapMessageTracer.addListener(endpoint, new ClientCoapListener(endpoint));
-                LOG.info("endpoint is not null so listener added");
+                LOG.info("endpoint(" + endpoint + ") is not null so listener added");
             }
         }
 
         @Override
         public void onClose() {
-            LOG.info("onClose");
+            LOG.info("EventServlet - onClose");
             cleanCoapListener(endpoint);
             eventSources.remove(this);
         }
@@ -289,6 +289,7 @@ public class EventServlet extends EventSourceServlet {
             try {
                 LOG.info("sentEvent-event:" + event + " and data:" + data);
                 emitter.event(event, data);
+
             } catch (IOException e) {
                 e.printStackTrace();
                 onClose();

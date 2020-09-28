@@ -108,6 +108,8 @@ public class ClientServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+        LOG.info("ClientServlet:doGet");
+
         // all registered clients
         if (req.getPathInfo() == null) {
             Collection<Registration> registrations = new ArrayList<>();
@@ -222,6 +224,9 @@ public class ClientServlet extends HttpServlet {
      */
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        LOG.info("ClientServlet:doPut");
+
         String[] path = StringUtils.split(req.getPathInfo(), '/');
         String clientEndpoint = path[0];
 
@@ -276,6 +281,9 @@ public class ClientServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        LOG.info("ClientServlet:doPost");
+
         String[] path = StringUtils.split(req.getPathInfo(), '/');
         String clientEndpoint = path[0];
 
@@ -369,6 +377,9 @@ public class ClientServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        LOG.info("ClientServlet:doDelete");
+
         String[] path = StringUtils.split(req.getPathInfo(), '/');
         String clientEndpoint = path[0];
 

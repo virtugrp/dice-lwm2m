@@ -35,6 +35,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
@@ -59,10 +60,13 @@ import org.eclipse.leshan.core.node.codec.LwM2mNodeDecoder;
 import org.eclipse.leshan.core.util.SecurityUtil;
 import org.eclipse.leshan.server.californium.LeshanServer;
 import org.eclipse.leshan.server.californium.LeshanServerBuilder;
+import org.eclipse.leshan.server.demo.listener.ObserveListener;
+import org.eclipse.leshan.server.demo.listener.RegisterListener;
 import org.eclipse.leshan.server.demo.servlet.ClientServlet;
 import org.eclipse.leshan.server.demo.servlet.EventServlet;
 import org.eclipse.leshan.server.demo.servlet.ObjectSpecServlet;
 import org.eclipse.leshan.server.demo.servlet.SecurityServlet;
+import org.eclipse.leshan.server.demo.utils.AppConfigs;
 import org.eclipse.leshan.server.demo.utils.MagicLwM2mValueConverter;
 import org.eclipse.leshan.server.model.LwM2mModelProvider;
 import org.eclipse.leshan.server.model.VersionedModelProvider;
@@ -556,9 +560,46 @@ public class LeshanServerDemo {
             jmdns.registerService(coapSecureServiceInfo);
         }
 
+        lwServer.getObservationService().addListener(new ObserveListener(lwServer));
+
+        lwServer.getRegistrationService().addListener(new RegisterListener(lwServer));
+
         // Start Jetty & Leshan
         lwServer.start();
         server.start();
         LOG.info("Web server started at {}.", server.getURI());
+
+        getAppConfig();
+
+    }
+
+    public static AppConfigs getAppConfig() throws IOException{
+
+        //to load application's properties, we use this class
+        Properties mainProperties = new Properties();
+
+        FileInputStream file;
+
+        //the base folder is ./, the root of the lwm2m.properties file
+        String path = "/opt/dice-lwm2m/lwm2m.properties";
+
+        //load the file handle for lwm2m.properties
+        file = new FileInputStream(path);
+
+        //load all the properties from this file
+        mainProperties.load(file);
+
+        //we have loaded the properties, so close the file handle
+        file.close();
+
+        //retrieve the property we are interested, the app.version
+        AppConfigs appConfigs = new AppConfigs(
+                mainProperties.getProperty("lwm2m.base.url"),
+                mainProperties.getProperty("lwm2m.allowed.paths"),
+                mainProperties.getProperty("dice.base.url"),
+                mainProperties.getProperty("dice.test.device.token")
+        );
+
+        return appConfigs;
     }
 }

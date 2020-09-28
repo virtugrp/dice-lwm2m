@@ -102,6 +102,10 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
         this.updateRegistrationOnNotification = updateRegistrationOnNotification;
     }
 
+    public void setNonSecureEndpoint(Endpoint endpoint) {
+        nonSecureEndpoint = endpoint;
+    }
+
     public void addObservation(Registration registration, Observation observation) {
         for (Observation existing : registrationStore.addObservation(registration.getId(), observation)) {
             cancel(existing);
@@ -110,10 +114,6 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
         for (ObservationListener listener : listeners) {
             listener.newObservation(observation, registration);
         }
-    }
-
-    public void setNonSecureEndpoint(Endpoint endpoint) {
-        nonSecureEndpoint = endpoint;
     }
 
     public void setSecureEndpoint(Endpoint endpoint) {

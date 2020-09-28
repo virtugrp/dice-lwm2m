@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.leshan.core.observation.Observation;
+import org.eclipse.leshan.server.observation.ObservationListener;
 
 /**
  * An implementation of {@link RegistrationService}
@@ -87,6 +88,7 @@ public class RegistrationServiceImpl implements RegistrationService, ExpirationL
             l.updated(update, updatedRegistration, previousRegistration);
         }
     }
+
 
     public RegistrationStore getStore() {
         return store;

@@ -152,8 +152,11 @@ public class ObserveListener implements ObservationListener {
 
         HttpEntity<String> request = new HttpEntity<String>(telemetryValues, headers);
 
+        String fullUrl = AppConfigs.getDiceBaseUrl() + "/api/v1/" + thingsBoardDeviceAccessToken + "/telemetry";
+        LOG.info("sendTelemetryData fullUrl:" + fullUrl);
+
         ResponseEntity<String> personResultAsJsonStr = restTemplate.postForEntity(
-                AppConfigs.getDiceBaseUrl() + "/api/v1/" + thingsBoardDeviceAccessToken + "/telemetry",
+                fullUrl,
                 request,
                 String.class);
 

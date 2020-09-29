@@ -35,6 +35,8 @@ import org.eclipse.leshan.server.demo.servlet.json.RegistrationSerializer;
 import org.eclipse.leshan.server.demo.servlet.log.CoapMessage;
 import org.eclipse.leshan.server.demo.servlet.log.CoapMessageListener;
 import org.eclipse.leshan.server.demo.servlet.log.CoapMessageTracer;
+import org.eclipse.leshan.server.demo.utils.AppConfigs;
+import org.eclipse.leshan.server.demo.utils.PathMapping;
 import org.eclipse.leshan.server.observation.ObservationListener;
 import org.eclipse.leshan.server.queue.PresenceListener;
 import org.eclipse.leshan.server.registration.Registration;
@@ -46,6 +48,11 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 public class EventServlet extends EventSourceServlet {
 
@@ -120,6 +127,17 @@ public class EventServlet extends EventSourceServlet {
         public void onAwake(Registration registration) {
             String data = new StringBuilder("{\"ep\":\"").append(registration.getEndpoint()).append("\"}").toString();
             LOG.info("onAwake:data[" + data +"] and registration.getEndpoint[" + registration.getEndpoint() + "]");
+
+            String deviceName = registration.getEndpoint();
+            for (PathMapping pm : PathMapping.values()) {
+                LOG.info("Auto Observation (via onAwake) is starting for enum-name:" + pm + " and enum-val:" + pm.getPathCode());
+                String finalUrl = AppConfigs.getLwm2mBaseUrl() + "/api/clients/" + deviceName + pm.getPathCode() + "/observe?format=TLV&timeout=5";
+                LOG.info("finalUrl (via onAwake):" + finalUrl);
+                HttpStatus result = sendObserveAction(finalUrl);
+                LOG.info("Auto Observation (via onAwake) result is: " + result.toString());
+            }
+
+
             sendEvent(EVENT_AWAKE, data, registration.getEndpoint());
         }
     };
@@ -305,5 +323,23 @@ public class EventServlet extends EventSourceServlet {
     private class RegUpdate {
         public Registration registration;
         public RegistrationUpdate update;
+    }
+
+    public HttpStatus sendObserveAction(String url) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+
+        ResponseEntity<String> personResultAsJsonStr = restTemplate.postForEntity(
+                url,
+                request,
+                String.class);
+
+        return personResultAsJsonStr.getStatusCode();
+
     }
 }

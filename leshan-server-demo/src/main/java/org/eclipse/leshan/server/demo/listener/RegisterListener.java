@@ -19,6 +19,7 @@ import org.eclipse.leshan.server.californium.registration.InMemoryRegistrationSt
 import org.eclipse.leshan.server.demo.servlet.json.LwM2mNodeSerializer;
 import org.eclipse.leshan.server.demo.servlet.json.RegistrationSerializer;
 import org.eclipse.leshan.server.demo.utils.AppConfigs;
+import org.eclipse.leshan.server.demo.utils.PathMapping;
 import org.eclipse.leshan.server.model.StandardModelProvider;
 import org.eclipse.leshan.server.observation.ObservationListener;
 import org.eclipse.leshan.server.registration.Registration;
@@ -70,11 +71,15 @@ public class RegisterListener implements RegistrationListener {
         LOG.info("Auto Observation is starting...");
 
         String deviceName = updatedReg.getEndpoint();
-        String path = "/3303/0/"; // All Temperature
+        //String path = "/3303/0/"; // All Temperature
 
-        HttpStatus result = sendObserveAction(AppConfigs.getLwm2mBaseUrl() + "/api/clients/" + deviceName + path + "observe?format=TLV&timeout=5");
-
-        LOG.info("Auto Observation result is: " + result.toString());
+        for (PathMapping pm : PathMapping.values()) {
+            LOG.info("Auto Observation is starting for enum-name:" + pm + " and enum-val:" + pm.getPathCode());
+            String finalUrl = AppConfigs.getLwm2mBaseUrl() + "/api/clients/" + deviceName + pm.getPathCode() + "/observe?format=TLV&timeout=5";
+            LOG.info("finalUrl:" + finalUrl);
+            HttpStatus result = sendObserveAction(finalUrl);
+            LOG.info("Auto Observation result is: " + result.toString());
+        }
 
         /*LwM2mPath target = new LwM2mPath(3303, 0, 5700);
 

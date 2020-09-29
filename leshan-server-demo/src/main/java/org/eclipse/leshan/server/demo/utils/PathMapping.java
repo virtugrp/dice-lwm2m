@@ -47,4 +47,8 @@ public enum PathMapping {
         }
         throw new IllegalArgumentException("PathMapping not found. Amputated?");
     }
+
+    public String getPathCode() {
+        return pathCode;
+    }
 }

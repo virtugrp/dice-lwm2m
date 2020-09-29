@@ -46,7 +46,7 @@ public class PresenceStateListener implements RegistrationListener, ObservationL
     @Override
     public void registered(Registration reg, Registration previousReg, Collection<Observation> previousObsersations) {
 
-        LOG.info("PresenceStateListener - registered - reg:" + reg.toString() + " and previousReg:" + previousReg.toString());
+        LOG.info("PresenceStateListener - registered");
 
         for(Observation obs: previousObsersations) {
             LOG.info("PresenceStateListener - registered - obs:" + obs.toString());

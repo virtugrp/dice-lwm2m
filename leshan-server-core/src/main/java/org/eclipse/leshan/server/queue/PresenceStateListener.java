@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class PresenceStateListener implements RegistrationListener, ObservationListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PresenceStateListener.class);
+    private final Logger LOG = LoggerFactory.getLogger(PresenceStateListener.class);
 
 
     PresenceServiceImpl presenceService;

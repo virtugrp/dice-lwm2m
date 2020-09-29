@@ -88,9 +88,12 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
     }
 
     public InMemoryRegistrationStore(long cleanPeriodInSec) {
+
+
         this(Executors.newScheduledThreadPool(1,
                 new NamedThreadFactory(String.format("InMemoryRegistrationStore Cleaner (%ds)", cleanPeriodInSec))),
                 cleanPeriodInSec);
+        LOG.info("InMemoryRegistrationStore - Constructor - cleanPeriodInSec:" + cleanPeriodInSec);
     }
 
     public InMemoryRegistrationStore(ScheduledExecutorService schedExecutor, long cleanPeriodInSec) {
@@ -102,6 +105,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Deregistration addRegistration(Registration registration) {
+
+        LOG.info("InMemoryRegistrationStore - addRegistration - registration:" + registration.toString());
+
         try {
             lock.writeLock().lock();
 
@@ -128,6 +134,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public UpdatedRegistration updateRegistration(RegistrationUpdate update) {
+
+        LOG.info("InMemoryRegistrationStore - updateRegistration - update:" + update.toString());
+
         try {
             lock.writeLock().lock();
 
@@ -155,6 +164,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Registration getRegistration(String registrationId) {
+
+        LOG.info("InMemoryRegistrationStore - getRegistration - registrationId:" + registrationId);
+
         try {
             lock.readLock().lock();
             return regsByRegId.get(registrationId);
@@ -165,6 +177,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Registration getRegistrationByEndpoint(String endpoint) {
+
+        LOG.info("InMemoryRegistrationStore - getRegistrationByEndpoint - endpoint:" + endpoint);
+
         try {
             lock.readLock().lock();
             return regsByEp.get(endpoint);
@@ -175,6 +190,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Registration getRegistrationByAdress(InetSocketAddress address) {
+
+        LOG.info("InMemoryRegistrationStore - getRegistrationByAdress - address:" + address.toString());
+
         try {
             lock.readLock().lock();
             return regsByAddr.get(address);
@@ -185,6 +203,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Iterator<Registration> getAllRegistrations() {
+
+        LOG.info("InMemoryRegistrationStore - getAllRegistrations");
+
         try {
             lock.readLock().lock();
             return new ArrayList<>(regsByEp.values()).iterator();
@@ -195,6 +216,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Deregistration removeRegistration(String registrationId) {
+
+        LOG.info("InMemoryRegistrationStore - removeRegistration - registrationId:" + registrationId);
+
         try {
             lock.writeLock().lock();
 
@@ -221,6 +245,8 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
     @Override
     public Collection<Observation> addObservation(String registrationId, Observation observation) {
 
+        LOG.info("InMemoryRegistrationStore - addObservation - registrationId:" + registrationId + " and observation:" + observation.toString());
+
         List<Observation> removed = new ArrayList<>();
 
         try {
@@ -241,6 +267,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Observation removeObservation(String registrationId, byte[] observationId) {
+
+        LOG.info("InMemoryRegistrationStore - removeObservation - registrationId:" + registrationId + " and observationId:" + observationId.toString());
+
         try {
             lock.writeLock().lock();
             Token token = new Token(observationId);
@@ -257,6 +286,10 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Observation getObservation(String registrationId, byte[] observationId) {
+
+        LOG.info("InMemoryRegistrationStore - getObservation - registrationId:" + registrationId + " and observationId:" + observationId.toString());
+
+
         try {
             lock.readLock().lock();
             Observation observation = build(unsafeGetObservation(new Token(observationId)));
@@ -271,6 +304,9 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Collection<Observation> getObservations(String registrationId) {
+
+        LOG.info("InMemoryRegistrationStore - getObservations - registrationId:" + registrationId);
+
         try {
             lock.readLock().lock();
             return unsafeGetObservations(registrationId);
@@ -281,6 +317,10 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
     @Override
     public Collection<Observation> removeObservations(String registrationId) {
+
+        LOG.info("InMemoryRegistrationStore - removeObservations - registrationId:" + registrationId);
+
+
         try {
             lock.writeLock().lock();
             return unsafeRemoveAllObservations(registrationId);
@@ -328,7 +368,7 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
 
                 // log any collisions
                 if (previousObservation != null) {
-                    LOG.warn(
+                    LOG.info(
                             "Token collision ? observation from request [{}] will be replaced by observation from request [{}] ",
                             previousObservation.getRequest(), obs.getRequest());
                 }
@@ -480,7 +520,7 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
         try {
             schedExecutor.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            LOG.warn("Destroying InMemoryRegistrationStore was interrupted.", e);
+            LOG.info("Destroying InMemoryRegistrationStore was interrupted.", e);
         }
     }
 
@@ -506,7 +546,7 @@ public class InMemoryRegistrationStore implements CaliforniumRegistrationStore, 
                     }
                 }
             } catch (Exception e) {
-                LOG.warn("Unexpected Exception while registration cleaning", e);
+                LOG.info("Unexpected Exception while registration cleaning", e);
             }
         }
     }

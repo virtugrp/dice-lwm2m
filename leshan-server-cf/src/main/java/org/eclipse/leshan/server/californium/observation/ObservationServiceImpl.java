@@ -82,6 +82,7 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
     public ObservationServiceImpl(CaliforniumRegistrationStore store, LwM2mModelProvider modelProvider,
             LwM2mNodeDecoder decoder) {
         this(store, modelProvider, decoder, false);
+        LOG.info("ObservationServiceImpl - Constructor - is called 2 Params");
     }
 
     /**
@@ -100,28 +101,40 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
         this.modelProvider = modelProvider;
         this.decoder = decoder;
         this.updateRegistrationOnNotification = updateRegistrationOnNotification;
+        LOG.info("ObservationServiceImpl - Constructor - is called 4 Params");
     }
 
     public void setNonSecureEndpoint(Endpoint endpoint) {
         nonSecureEndpoint = endpoint;
+        LOG.info("ObservationServiceImpl - setNonSecureEndpoint - endpoint: " + endpoint);
     }
 
     public void addObservation(Registration registration, Observation observation) {
+
+        LOG.info("ObservationServiceImpl - addObservation - registration" + registration.toString());
+        LOG.info("ObservationServiceImpl - addObservation - observation" + observation.toString());
+
         for (Observation existing : registrationStore.addObservation(registration.getId(), observation)) {
+            LOG.info("ObservationServiceImpl - addObservation - cancel existing");
             cancel(existing);
         }
 
         for (ObservationListener listener : listeners) {
+            LOG.info("ObservationServiceImpl - addObservation - new observation is adding into listeners");
             listener.newObservation(observation, registration);
         }
     }
 
     public void setSecureEndpoint(Endpoint endpoint) {
         secureEndpoint = endpoint;
+        LOG.info("ObservationServiceImpl - setSecureEndpoint - endpoint:" + endpoint);
     }
 
     @Override
     public int cancelObservations(Registration registration) {
+
+        LOG.info("ObservationServiceImpl - cancelObservations - registration:" + registration.toString());
+
         // check registration id
         String registrationId = registration.getId();
         if (registrationId == null)
@@ -140,8 +153,15 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
 
     @Override
     public int cancelObservations(Registration registration, String resourcepath) {
-        if (registration == null || registration.getId() == null || resourcepath == null || resourcepath.isEmpty())
+
+
+        if (registration == null || registration.getId() == null || resourcepath == null || resourcepath.isEmpty()) {
+
+            LOG.info("ObservationServiceImpl - cancelObservations - registration is null or its id is null");
             return 0;
+        }
+
+        LOG.info("ObservationServiceImpl - cancelObservations - registration:" + registration.toString() + " and resourcepath:" + resourcepath);
 
         Set<Observation> observations = getObservations(registration.getId(), resourcepath);
         for (Observation observation : observations) {
@@ -152,14 +172,23 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
 
     @Override
     public void cancelObservation(Observation observation) {
-        if (observation == null)
+
+
+        if (observation == null) {
+            LOG.info("ObservationServiceImpl - cancelObservations - observation is null:");
             return;
+        }
+
+        LOG.info("ObservationServiceImpl - cancelObservations - observation:" + observation.toString());
 
         registrationStore.removeObservation(observation.getRegistrationId(), observation.getId());
         cancel(observation);
     }
 
     private void cancel(Observation observation) {
+
+        LOG.info("ObservationServiceImpl - cancelObservations - cancel - observation:" + observation.toString());
+
         Token token = new Token(observation.getId());
         if (secureEndpoint != null)
             secureEndpoint.cancelObservation(token);
@@ -218,7 +247,7 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
 
     @Override
     public void onNotification(Request coapRequest, Response coapResponse) {
-        LOG.trace("notification received for request {}: {}", coapRequest, coapResponse);
+        LOG.info("ObservationServiceImpl - onNotification - received for request {}: {}", coapRequest, coapResponse);
 
         if (listeners.isEmpty())
             return;
@@ -229,7 +258,7 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
         // get observation for this request
         Observation observation = registrationStore.getObservation(regid, coapResponse.getToken().getBytes());
         if (observation == null) {
-            LOG.error("Unexpected error: Unable to find observation with token {} for registration {}",
+            LOG.error("ObservationServiceImpl - onNotification - Unexpected error: Unable to find observation with token {} for registration {}",
                     coapResponse.getToken(), regid);
             return;
         }
@@ -242,7 +271,7 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
                     null, null, null, null);
             UpdatedRegistration updatedRegistration = registrationStore.updateRegistration(regUpdate);
             if (updatedRegistration == null || updatedRegistration.getUpdatedRegistration() == null) {
-                LOG.error("Unexpected error: There is no registration with id {} for this observation {}",
+                LOG.error("ObservationServiceImpl - onNotification - Unexpected error: There is no registration with id {} for this observation {}",
                         observation.getRegistrationId(), observation);
                 return;
             }
@@ -250,7 +279,7 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
         } else {
             registration = registrationStore.getRegistration(observation.getRegistrationId());
             if (registration == null) {
-                LOG.error("Unexpected error: There is no registration with id {} for this observation {}",
+                LOG.error("ObservationServiceImpl - onNotification - Unexpected error: There is no registration with id {} for this observation {}",
                         observation.getRegistrationId(), observation);
                 return;
             }
@@ -269,16 +298,20 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
             }
         } catch (InvalidResponseException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Invalid notification for observation [%s]", observation), e);
+                LOG.debug(String.format("ObservationServiceImpl - onNotification - Invalid notification for observation [%s]", observation), e);
             }
+
+            LOG.info(String.format("ObservationServiceImpl - onNotification - Invalid notification for observation [%s]", observation), e);
 
             for (ObservationListener listener : listeners) {
                 listener.onError(observation, registration, e);
             }
         } catch (RuntimeException e) {
             if (LOG.isErrorEnabled()) {
-                LOG.error(String.format("Unable to handle notification for observation [%s]", observation), e);
+                LOG.error(String.format("ObservationServiceImpl - onNotification - Unable to handle notification for observation [%s]", observation), e);
             }
+
+            LOG.info(String.format("ObservationServiceImpl - onNotification - Unable to handle notification for observation [%s]", observation), e);
 
             for (ObservationListener listener : listeners) {
                 listener.onError(observation, registration, e);
@@ -288,10 +321,13 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
     }
 
     private ObserveResponse createObserveResponse(Observation observation, LwM2mModel model, Response coapResponse) {
+
+        LOG.info("ObservationServiceImpl - createObserveResponse - observation:" + observation.toString() + " and model:" + model.toString() + " and coapResponse:" + coapResponse.toString());
+
         // CHANGED response is supported for backward compatibility with old spec.
         if (coapResponse.getCode() != CoAP.ResponseCode.CHANGED
                 && coapResponse.getCode() != CoAP.ResponseCode.CONTENT) {
-            throw new InvalidResponseException("Unexpected response code [%s] for %s", coapResponse.getCode(),
+            throw new InvalidResponseException("ObservationServiceImpl - createObserveResponse - Unexpected response code [%s] for %s", coapResponse.getCode(),
                     observation);
         }
 
@@ -317,10 +353,10 @@ public class ObservationServiceImpl implements ObservationService, NotificationL
         } catch (CodecException e) {
             if (LOG.isDebugEnabled()) {
                 byte[] payload = coapResponse.getPayload() == null ? new byte[0] : coapResponse.getPayload();
-                LOG.debug(String.format("Unable to decode notification payload [%s] of observation [%s] ",
+                LOG.debug(String.format("ObservationServiceImpl - createObserveResponse - Unable to decode notification payload [%s] of observation [%s] ",
                         Hex.encodeHexString(payload), observation), e);
             }
-            throw new InvalidResponseException(e, "Unable to decode notification payload  of observation [%s] ",
+            throw new InvalidResponseException(e, "ObservationServiceImpl - createObserveResponse - Unable to decode notification payload  of observation [%s] ",
                     observation);
         }
     }

@@ -23,6 +23,8 @@ import org.eclipse.leshan.server.observation.ObservationListener;
 import org.eclipse.leshan.server.registration.Registration;
 import org.eclipse.leshan.server.registration.RegistrationListener;
 import org.eclipse.leshan.server.registration.RegistrationUpdate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Listener that controls the state of the client (awake/sleeping) It is in charge of sending all the queued messages
@@ -32,6 +34,9 @@ import org.eclipse.leshan.server.registration.RegistrationUpdate;
 
 public class PresenceStateListener implements RegistrationListener, ObservationListener {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PresenceStateListener.class);
+
+
     PresenceServiceImpl presenceService;
 
     public PresenceStateListener(PresenceServiceImpl presenceService) {
@@ -40,6 +45,13 @@ public class PresenceStateListener implements RegistrationListener, ObservationL
 
     @Override
     public void registered(Registration reg, Registration previousReg, Collection<Observation> previousObsersations) {
+
+        LOG.info("PresenceStateListener - registered - reg:" + reg.toString() + " and previousReg:" + previousReg.toString());
+
+        for(Observation obs: previousObsersations) {
+            LOG.info("PresenceStateListener - registered - obs:" + obs.toString());
+        }
+
         if (reg.usesQueueMode()) {
             presenceService.setAwake(reg);
         }
@@ -48,6 +60,9 @@ public class PresenceStateListener implements RegistrationListener, ObservationL
     @Override
     public void updated(RegistrationUpdate update, Registration updatedRegistration,
             Registration previousRegistration) {
+
+        LOG.info("PresenceStateListener - updated - update:" + update.toString() + " and updatedRegistration:" + updatedRegistration.toString() + " and previousRegistration:" + previousRegistration.toString());
+
         if (updatedRegistration.usesQueueMode()) {
             presenceService.setAwake(updatedRegistration);
         }
@@ -57,6 +72,13 @@ public class PresenceStateListener implements RegistrationListener, ObservationL
     @Override
     public void unregistered(Registration reg, Collection<Observation> observations, boolean expired,
             Registration newReg) {
+
+        LOG.info("PresenceStateListener - unregistered - reg:" + reg.toString() + " and expired:" + expired + " and newReg:" + newReg.toString());
+
+        for(Observation obs: observations) {
+            LOG.info("PresenceStateListener - unregistered - obs:" + obs.toString());
+        }
+
         presenceService.stopPresenceTracking(reg);
     }
 
@@ -67,6 +89,9 @@ public class PresenceStateListener implements RegistrationListener, ObservationL
      */
     @Override
     public void onResponse(Observation observation, Registration registration, ObserveResponse response) {
+
+        LOG.info("PresenceStateListener - onResponse - observation:" + observation.toString() + " and registration:" + registration.toString() + " and ObserveResponse:" + response.toString());
+
         presenceService.setAwake(registration);
     }
 

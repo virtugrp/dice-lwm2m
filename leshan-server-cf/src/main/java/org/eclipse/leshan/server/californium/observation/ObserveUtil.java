@@ -25,12 +25,16 @@ import org.eclipse.leshan.core.observation.Observation;
 import org.eclipse.leshan.core.request.ContentFormat;
 import org.eclipse.leshan.core.request.ObserveRequest;
 import org.eclipse.leshan.server.californium.registration.CaliforniumRegistrationStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility functions to help to handle observation in Leshan. Those helper functions are only needed if you're
  * implementing your own {@link CaliforniumRegistrationStore}.
  */
 public class ObserveUtil {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ObserveUtil.class);
 
     /* keys used to populate the request context */
     public static final String CTX_ENDPOINT = "leshan-endpoint";
@@ -41,6 +45,9 @@ public class ObserveUtil {
      * Create a LWM2M observation from a CoAP request.
      */
     public static Observation createLwM2mObservation(Request request) {
+
+        LOG.info("ObserveUtil - createLwM2mObservation - request:" + request.toString());
+
         String regId = null;
         String lwm2mPath = null;
         Map<String, String> context = null;
@@ -75,6 +82,9 @@ public class ObserveUtil {
      */
     public static Map<String, String> createCoapObserveRequestContext(String endpoint, String registrationId,
             ObserveRequest request) {
+
+        LOG.info("ObserveUtil - createCoapObserveRequestContext - endpoint:" + endpoint + " and registrationId:" + registrationId + " and ObserveRequest:" + request.toString());
+
         Map<String, String> context = new HashMap<>();
         context.put(CTX_ENDPOINT, endpoint);
         context.put(CTX_REGID, registrationId);
@@ -86,14 +96,17 @@ public class ObserveUtil {
     }
 
     public static String extractRegistrationId(org.eclipse.californium.core.observe.Observation observation) {
+        LOG.info("ObserveUtil - extractRegistrationId - observation:" + observation.toString());
         return observation.getRequest().getUserContext().get(CTX_REGID);
     }
 
     public static String extractLwm2mPath(org.eclipse.californium.core.observe.Observation observation) {
+        LOG.info("ObserveUtil - extractLwm2mPath - observation:" + observation.toString());
         return observation.getRequest().getUserContext().get(CTX_LWM2M_PATH);
     }
 
     public static String extractEndpoint(org.eclipse.californium.core.observe.Observation observation) {
+        LOG.info("ObserveUtil - extractEndpoint - observation:" + observation.toString());
         return observation.getRequest().getUserContext().get(CTX_ENDPOINT);
     }
 
@@ -101,6 +114,9 @@ public class ObserveUtil {
      * Validate the Californium observation. It is valid if it contains all necessary context for Leshan.
      */
     public static String validateCoapObservation(org.eclipse.californium.core.observe.Observation observation) {
+
+        LOG.info("ObserveUtil - validateCoapObservation - observation:" + observation.toString());
+
         if (!observation.getRequest().getUserContext().containsKey(CTX_REGID))
             throw new IllegalStateException("missing registrationId info in the request context");
         if (!observation.getRequest().getUserContext().containsKey(CTX_LWM2M_PATH))

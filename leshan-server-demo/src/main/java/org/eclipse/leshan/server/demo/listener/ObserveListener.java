@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import sun.rmi.runtime.Log;
 
 import java.util.Map;
 
@@ -80,15 +81,14 @@ public class ObserveListener implements ObservationListener {
 
                 LOG.info("ObserveListener - onResponse - Not a LwM2mSingleResource");
 
-                LwM2mMultipleResource gg = (LwM2mMultipleResource)response.getContent();
-                Map<Integer, ?> valuesMap = gg.getValues();
+                LwM2mMultipleResource lwm2mMulRes = (LwM2mMultipleResource)response.getContent();
+                LOG.info("lwm2mMulRes id:" + lwm2mMulRes.getId());
+                Map<Integer, ?> valuesMap = lwm2mMulRes.getValues();
 
                 for (Map.Entry<Integer, ?> val : valuesMap.entrySet()) {
                     LOG.info("ObserveListener - onResponse - LwM2mMultipleResource - Key:" + val.getKey() + " and Value:" + val.getValue());
-                    String key = (gg.getId() + "-" + val.getKey());
-                    String value = (String)(val.getValue());
                     try {
-                        jsonObject.put(key, value);
+                        jsonObject.put((lwm2mMulRes.getId() + "-" + val.getKey()), val.getValue());
                     } catch (JSONException ex) {
                         LOG.info("ObserveListener - onResponse - JSonObject insertion failure for LwM2mMultipleResource");
                         ex.printStackTrace();

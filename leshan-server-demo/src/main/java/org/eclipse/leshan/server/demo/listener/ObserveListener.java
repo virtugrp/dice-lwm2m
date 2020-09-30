@@ -3,10 +3,7 @@ package org.eclipse.leshan.server.demo.listener;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.eclipse.leshan.core.node.LwM2mNode;
-import org.eclipse.leshan.core.node.LwM2mObjectInstance;
-import org.eclipse.leshan.core.node.LwM2mResource;
-import org.eclipse.leshan.core.node.LwM2mSingleResource;
+import org.eclipse.leshan.core.node.*;
 import org.eclipse.leshan.core.observation.Observation;
 import org.eclipse.leshan.core.response.ObserveResponse;
 import org.eclipse.leshan.server.californium.LeshanServer;
@@ -20,7 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -62,24 +58,49 @@ public class ObserveListener implements ObservationListener {
         //LOG.info("ObserveListener - ((LwM2mSingleResource)response.getContent()).getValue().toString():" + ((LwM2mSingleResource)response.getContent()).getValue().toString());
         //LOG.info("ObserveListener - ((LwM2mMultipleResource)response.getContent()).getValues().toString():" + convertWithIteration(((LwM2m)response.getContent()).getValues()).toString());
 
+        //TODO: en icteki LwM2mMultipleResource blogu en cok kullanilacak olan gibi duruyor (eql cihazlari icin).
+        // O yuzden productification calismalarinda en uste alinabilir
         String telemetries = "";
         try {
             Map<Integer, LwM2mResource> lwM2mResources = ((LwM2mObjectInstance)response.getContent()).getResources();
             LOG.info("lwM2mResources:" + convertWithIteration(lwM2mResources));
 
             telemetries = createJsonObjectForTelemetry(lwM2mResources, observation.getPath().toString()).toString();
-            LOG.info("ObserveListener - testObj.toString():" + telemetries.toString());
 
         } catch(ClassCastException e) {
+
+            LOG.info("ObserveListener - onResponse - Not a LwM2mObjectInstance");
 
             JSONObject jsonObject = new JSONObject();
             try {
                 Integer key = ((LwM2mSingleResource)response.getContent()).getId();
                 String value = ((LwM2mSingleResource)response.getContent()).getValue().toString();
                 jsonObject.put(String.valueOf(key), value);
+            } catch(ClassCastException e2) {
+
+                LOG.info("ObserveListener - onResponse - Not a LwM2mSingleResource");
+
+                LwM2mMultipleResource gg = (LwM2mMultipleResource)response.getContent();
+                Map<Integer, ?> valuesMap = gg.getValues();
+
+                for (Map.Entry<Integer, ?> val : valuesMap.entrySet()) {
+                    LOG.info("ObserveListener - onResponse - LwM2mMultipleResource - Key:" + val.getKey() + " and Value:" + val.getValue());
+                    String key = (gg.getId() + "-" + val.getKey());
+                    String value = (String)(val.getValue());
+                    try {
+                        jsonObject.put(key, value);
+                    } catch (JSONException ex) {
+                        LOG.info("ObserveListener - onResponse - JSonObject insertion failure for LwM2mMultipleResource");
+                        ex.printStackTrace();
+                    }
+                }
+
             } catch (JSONException ex) {
+                LOG.info("ObserveListener - onResponse - JSONException occured");
                 ex.printStackTrace();
             }
+
+            LOG.info("ObserveListener - onResponse - telemetries:" + telemetries.toString());
             telemetries = jsonObject.toString();
         }
 

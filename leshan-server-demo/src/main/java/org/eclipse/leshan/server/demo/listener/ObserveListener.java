@@ -55,7 +55,8 @@ public class ObserveListener implements ObservationListener {
         LOG.info("ObserveListener - Received notification from [{}] containing value [{}]", observation.getPath(), response.getContent().toString());
 
         LOG.info("ObserveListener - registration.getEndpoint():" + registration.getEndpoint());
-        LOG.info("ObserveListener - response.getObservation().getPath().toString():" + response.getObservation().getPath().toString());
+        String path = response.getObservation().getPath().toString();
+        LOG.info("ObserveListener - response.getObservation().getPath().toString():" + path);
         //LOG.info("ObserveListener - ((LwM2mSingleResource)response.getContent()).getValue().toString():" + ((LwM2mSingleResource)response.getContent()).getValue().toString());
         //LOG.info("ObserveListener - ((LwM2mMultipleResource)response.getContent()).getValues().toString():" + convertWithIteration(((LwM2m)response.getContent()).getValues()).toString());
 
@@ -88,7 +89,11 @@ public class ObserveListener implements ObservationListener {
                 for (Map.Entry<Integer, ?> val : valuesMap.entrySet()) {
                     LOG.info("ObserveListener - onResponse - LwM2mMultipleResource - Key:" + val.getKey() + " and Value:" + val.getValue());
                     try {
-                        jsonObject.put((lwm2mMulRes.getId() + "-" + val.getKey()), val.getValue());
+                        LOG.info("integerArray is being calculating...");
+                        Integer[] integerArray = (Integer[]) val.getValue();
+                        LOG.info("integerArray length is:" + integerArray.length);
+                        LOG.info("integerArray content is:" + integerArray.toString());
+                        jsonObject.put(path + "-" + (lwm2mMulRes.getId() + "-" + val.getKey()), val.getValue());
                     } catch (JSONException ex) {
                         LOG.info("ObserveListener - onResponse - JSonObject insertion failure for LwM2mMultipleResource");
                         ex.printStackTrace();

@@ -13,6 +13,7 @@ import org.eclipse.leshan.server.demo.utils.AppConfigs;
 import org.eclipse.leshan.server.demo.utils.PathMapping;
 import org.eclipse.leshan.server.observation.ObservationListener;
 import org.eclipse.leshan.server.registration.Registration;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -74,6 +75,7 @@ public class ObserveListener implements ObservationListener {
             LOG.info("ObserveListener - onResponse - Not a LwM2mObjectInstance");
 
             JSONObject jsonObject = new JSONObject();
+            JSONArray jArr = new JSONArray();
             try {
                 Integer key = ((LwM2mSingleResource)response.getContent()).getId();
                 String value = ((LwM2mSingleResource)response.getContent()).getValue().toString();
@@ -89,11 +91,35 @@ public class ObserveListener implements ObservationListener {
                 for (Map.Entry<Integer, ?> val : valuesMap.entrySet()) {
                     LOG.info("ObserveListener - onResponse - LwM2mMultipleResource - Key:" + val.getKey() + " and Value:" + val.getValue());
                     try {
-                        LOG.info("integerArray is being calculating...");
-                        Integer[] integerArray = (Integer[]) val.getValue();
-                        LOG.info("integerArray length is:" + integerArray.length);
-                        LOG.info("integerArray content is:" + integerArray.toString());
-                        jsonObject.put(path + "-" + (lwm2mMulRes.getId() + "-" + val.getKey()), val.getValue());
+                        LOG.info("class type is being calculating...");
+                        LOG.info("class type is:" + val.getClass());
+                        LOG.info("class str is:" + val.toString());
+
+                        JSONObject o1 = new JSONObject();
+                        JSONObject o1Data = new JSONObject();
+                        o1.put("ts", "1451659680512");
+                        o1Data.put("xx", 300);
+                        o1Data.put("yy", 700);
+                        o1.put("values", o1Data);
+                        jArr.put(o1);
+                        JSONObject o2 = new JSONObject();
+                        JSONObject o2Data = new JSONObject();
+                        o2.put("ts", "1451669680512");
+                        o2Data.put("xx", 350);
+                        o2Data.put("yy", 730);
+                        o2.put("values", o2Data);
+                        jArr.put(o2);
+                        JSONObject o3 = new JSONObject();
+                        JSONObject o3Data = new JSONObject();
+                        o3.put("ts", "1451679680512");
+                        o3Data.put("xx", 370);
+                        o3Data.put("yy", 790);
+                        o3.put("values", o3Data);
+                        jArr.put(o3);
+
+                        //jsonObject.put(path + "-" + (lwm2mMulRes.getId() + "-" + val.getKey()), val.getValue());
+
+
                     } catch (JSONException ex) {
                         LOG.info("ObserveListener - onResponse - JSonObject insertion failure for LwM2mMultipleResource");
                         ex.printStackTrace();
@@ -106,7 +132,8 @@ public class ObserveListener implements ObservationListener {
             }
 
             LOG.info("ObserveListener - onResponse - telemetries:" + telemetries.toString());
-            telemetries = jsonObject.toString();
+            //telemetries = jsonObject.toString();
+            telemetries = jArr.toString();
         }
 
         HttpStatus httpStatus = sendTelemetryData(telemetries, AppConfigs.getDiceTestDeviceToken());
